@@ -2,6 +2,28 @@
 
 All notable changes to atlcli will be documented in this file.
 
+## [0.15.0] - 2026-03-07
+
+### Bug Fixes
+
+- **auth:** Harden credential handling([ca542fb](https://github.com/bjoernschotte/atlcli/commit/ca542fb742a4669fd3934af24981efa13265914f))
+
+### Documentation
+
+- **changelog:** Add contributor acknowledgment for PR #1([72ca0ae](https://github.com/bjoernschotte/atlcli/commit/72ca0aeaffd6745eb16f82a558c16886a0ffc4b1))
+
+### Features
+
+- **jira:** Add --field flag for custom fields on issue create and update (#2)([070ca2d](https://github.com/bjoernschotte/atlcli/commit/070ca2ded86971bbf05eba8413bd33aa138c1815))
+
+### Miscellaneous
+
+- Add typescript dev dependency([871d4eb](https://github.com/bjoernschotte/atlcli/commit/871d4ebfe268418b9b53e5c8c2f453cb6fbf6d40))
+
+### New Contributors
+
+- [@andinger](https://github.com/andinger) (Andi Keßler) - Custom field support for Jira issue create and update (#2)
+
 ## [0.14.0] - 2026-01-30
 
 ### Bug Fixes
