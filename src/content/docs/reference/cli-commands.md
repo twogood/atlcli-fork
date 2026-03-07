@@ -316,7 +316,10 @@ atlcli jira issue get --key <key> --expand all
 atlcli jira issue create --project <key> --type <type> --summary <text>
 atlcli jira issue create --project <key> --type <type> --summary <text> \
   --description <text> --assignee <email> --labels <labels>
+atlcli jira issue create --project <key> --type <type> --summary <text> \
+  --field customfield_10028=5 --field customfield_10077='{"value":"Feature"}'
 atlcli jira issue update --key <key> --summary <text>
+atlcli jira issue update --key <key> --field customfield_10028=8
 atlcli jira issue update --key <key> --priority <name>
 atlcli jira issue update --key <key> --add-labels <labels>
 atlcli jira issue update --key <key> --remove-labels <labels>
