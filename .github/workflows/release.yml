@@ -92,9 +92,81 @@ jobs:
           name: checksums-${{ matrix.runner }}
           path: release/checksums.txt
 
+  # Build Windows x64 binary
+  build-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Get version
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build Windows binary
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path release | Out-Null
+          $VERSION = "${{ steps.version.outputs.version }}"
+
+          Write-Host "Building for windows-x64 (v$VERSION)..."
+
+          bun build apps/cli/src/index.ts `
+            --compile `
+            --target bun-windows-x64 `
+            --define "__ATLCLI_VERSION__=`"$VERSION`"" `
+            --outfile release/atlcli
+
+          # Bun on Windows appends .exe to the output file
+          $binaryName = "atlcli.exe"
+
+          Set-Location release
+          Compress-Archive -Path $binaryName -DestinationPath "atlcli-windows-x64.zip"
+          Remove-Item $binaryName
+          Set-Location ..
+
+          Write-Host "Built atlcli-windows-x64.zip"
+
+      - name: Generate checksums
+        shell: pwsh
+        run: |
+          Set-Location release
+          $hash = (Get-FileHash "atlcli-windows-x64.zip" -Algorithm SHA256).Hash.ToLower()
+          "$hash  atlcli-windows-x64.zip" | Out-File -FilePath "checksums.txt" -Encoding utf8NoBOM
+          Get-Content checksums.txt
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-windows
+          path: release/atlcli-windows-x64.zip
+
+      - name: Upload checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: checksums-windows
+          path: release/checksums.txt
+
   # Create GitHub Release
   release:
-    needs: build
+    needs: [build, build-windows]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -121,6 +193,7 @@ jobs:
         run: |
           mkdir -p release
           cp artifacts/binaries-*/*.tar.gz release/
+          cp artifacts/binaries-*/*.zip release/
           cat artifacts/checksums-*/checksums.txt > release/checksums.txt
           ls -la release/
 
@@ -172,6 +245,7 @@ jobs:
           body_path: release_notes.md
           files: |
             release/*.tar.gz
+            release/*.zip
             release/checksums.txt
           draft: false
           prerelease: false
